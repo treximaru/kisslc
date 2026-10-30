@@ -190,7 +190,9 @@ public class Favorites extends Forwarder {
 
         @Override
         public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-            int dragFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
+            // All four directions: with several rows, favorites can be dragged across rows too,
+            // not just left/right within one row.
+            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
             return makeMovementFlags(dragFlags, 0);
         }
 
