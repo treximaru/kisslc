@@ -220,7 +220,7 @@
     <string name="ui_item_search">%1$s യിൽ \"%2$s\" തിരയൂ</string>
     <string name="ui_search_hint">തിരയൂ അപ്പ്സിൽ, കോൺടാക്റ്റുകളിൽ, …</string>
     <string name="activity_setting">കിസ്സ് ക്രമീകരണങ്ങൾ</string>
-    <string name="app_name">കിസ്സ് ലോഞ്ചർ</string>
+    <string name="app_name">KissLC launcher</string>
     <string name="theme_shadow">വാക്കുകൾക്കു നിഴൽ</string>
     <string name="show_subicons">ആപ്പ് ചിഹ്നം കുറുക്കുവഴിയിൽ കാണിക്കുക</string>
     <string name="gesture_history">മുൻസമ്പർക്കങ്ങൾ കാണിക്കുക</string>

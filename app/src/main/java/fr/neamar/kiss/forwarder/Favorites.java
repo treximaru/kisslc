@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Pair;
@@ -60,6 +61,11 @@ public class Favorites extends Forwarder {
         private final List<Result<?>> results = new ArrayList<>();
         private OnItemClickListener mOnItemClickListener = null;
         private OnItemLongClickListener mOnItemLongClickListener = null;
+        // Fixed item height in px for the external bar (one row tall). MATCH_PARENT for the
+        // embedded bar, which fills the fixed-height kiss bar. A vertical RecyclerView measures
+        // match_parent children against its FULL height, so without this every row would be as
+        // tall as the whole bar and the bar would scroll.
+        private int mItemHeightPx = ViewGroup.LayoutParams.MATCH_PARENT;
 
         public FavoriteAdapter() {
             super();
@@ -81,6 +87,10 @@ public class Favorites extends Forwarder {
             this.results.clear();
             this.results.addAll(results);
             notifyDataSetChanged();
+        }
+
+        public void setItemHeightPx(int itemHeightPx) {
+            mItemHeightPx = itemHeightPx;
         }
 
         public void updateFavoritePositions(Context context) {
@@ -128,12 +138,17 @@ public class Favorites extends Forwarder {
             }
 
             View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
+            view.getLayoutParams().height = mItemHeightPx;
             return new ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Result<?> result = getItem(position);
+            // Recycled views may carry a stale height when the setting changed.
+            if (holder.itemView.getLayoutParams().height != mItemHeightPx) {
+                holder.itemView.getLayoutParams().height = mItemHeightPx;
+            }
             holder.inflateFavorite(result);
             holder.itemView.setOnClickListener(v -> {
                 if (mOnItemClickListener != null) {
@@ -175,7 +190,9 @@ public class Favorites extends Forwarder {
 
         @Override
         public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-            int dragFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
+            // All four directions: with several rows, favorites can be dragged across rows too,
+            // not just left/right within one row.
+            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;
             return makeMovementFlags(dragFlags, 0);
         }
 
@@ -254,11 +271,42 @@ public class Favorites extends Forwarder {
         List<Pojo> favoritesPojo = KissApplication.getApplication(mainActivity).getDataHandler().getFavorites();
         int favSize = favoritesPojo.size();
 
+        int spanCount;
+        if (isExternalFavoriteBarEnabled()) {
+            // Icons per row: 0 (default) fits everything in a single row (upstream behavior).
+            // The grid wraps to as many rows as needed; icon size follows from the column count.
+            int perRow = getFavoriteIconsPerRow();
+            spanCount = perRow > 0 ? Math.min(perRow, Math.max(favSize, 1)) : Math.max(favSize, 1);
+            // Lock each item to exactly one row tall, otherwise a vertical RecyclerView
+            // measures match_parent children against its full height and the bar scrolls.
+            Resources res = mainActivity.getResources();
+            int rowHeight = prefs.getBoolean("large-favorites-bar", false)
+                    ? res.getDimensionPixelSize(R.dimen.large_favorite_height)
+                    : res.getDimensionPixelSize(R.dimen.favorite_height);
+            favoriteAdapter.setItemHeightPx(rowHeight);
+        } else {
+            // The embedded bar lives inside the kiss bar with a fixed height: keep a single row.
+            spanCount = Math.max(favSize, 1);
+            favoriteAdapter.setItemHeightPx(ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+
         RecyclerView favoritesBar = mainActivity.favoritesBar;
         if (favoritesBar.getLayoutManager() instanceof GridLayoutManager) {
-            ((GridLayoutManager) favoritesBar.getLayoutManager()).setSpanCount(Math.max(favSize, 1));
+            ((GridLayoutManager) favoritesBar.getLayoutManager()).setSpanCount(spanCount);
         }
         favoriteAdapter.setFavorites(favoritesPojo.stream().map(pojo -> Result.fromPojo(mainActivity, pojo)).collect(Collectors.toList()));
+    }
+
+    /**
+     * Icons per row in the external favorites bar. 0 (default) fits all in one row.
+     * Stored under the historic "favorite-max-icons" key so existing values carry over.
+     */
+    private int getFavoriteIconsPerRow() {
+        try {
+            return Math.max(Integer.parseInt(prefs.getString("favorite-max-icons", "0")), 0);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private void onClick(View v, Result<?> result) {

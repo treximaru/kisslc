@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">راهانداز کیس</string>
+    <string name="app_name">KissLC launcher</string>
     <string name="activity_setting">تنظیمات کیس</string>
     <string name="ui_search_hint">جستجوی برنامه ها, مخاطبین…</string>
     <string name="ui_item_visit">بازدید به “%1$s”</string>

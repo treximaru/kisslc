@@ -28,6 +28,7 @@ import androidx.preference.PreferenceManager;
 
 import java.util.List;
 
+import fr.neamar.kiss.KissApplication;
 import fr.neamar.kiss.MainActivity;
 import fr.neamar.kiss.R;
 import fr.neamar.kiss.UIColors;
@@ -203,9 +204,29 @@ public class InterfaceTweaks extends Forwarder {
         mainActivity.kissBar.getLayoutParams().height = searchHeight;
         mainActivity.findViewById(R.id.embeddedFavoritesBar).getLayoutParams().height = searchHeight;
 
-        // Large favorite bar
-        if (prefs.getBoolean("large-favorites-bar", false) && isExternalFavoriteBarEnabled()) {
-            mainActivity.favoritesBar.getLayoutParams().height = res.getDimensionPixelSize(R.dimen.large_favorite_height);
+        // Favorites bar height: one row of favorite_height (or large_favorite_height
+        // when "large-favorites-bar" is on), times the rows the grid wraps into
+        if (isExternalFavoriteBarEnabled()) {
+            int singleRowHeight = prefs.getBoolean("large-favorites-bar", false)
+                    ? res.getDimensionPixelSize(R.dimen.large_favorite_height)
+                    : res.getDimensionPixelSize(R.dimen.favorite_height);
+            int favCount = KissApplication.getApplication(mainActivity).getDataHandler().getFavorites().size();
+            int perRow = getFavoriteIconsPerRow();
+            int columns = perRow > 0 ? Math.min(perRow, Math.max(favCount, 1)) : Math.max(favCount, 1);
+            int rows = Math.max((favCount + columns - 1) / columns, 1);
+            mainActivity.favoritesBar.getLayoutParams().height = singleRowHeight * rows;
+        }
+    }
+
+    /**
+     * Icons per row in the external favorites bar. 0 (default) fits all in one row.
+     * Stored under the historic "favorite-max-icons" key so existing values carry over.
+     */
+    private int getFavoriteIconsPerRow() {
+        try {
+            return Math.max(Integer.parseInt(prefs.getString("favorite-max-icons", "0")), 0);
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 

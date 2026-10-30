@@ -77,6 +77,14 @@
                 app:dependency="enable-favorites-bar"
                 app:key="large-favorites-bar"
                 app:title="@string/large_favorites_bar" />
+            <fr.neamar.kiss.preference.RangeEditTextPreference
+                app:defaultValue="0"
+                app:dependency="enable-favorites-bar"
+                app:key="favorite-max-icons"
+                app:title="@string/favorite_max_icons"
+                app:summary="@string/favorite_max_icons_summary"
+                app:maxValue="10"
+                app:minValue="0" />
             <SwitchPreference
                 app:defaultValue="true"
                 app:key="transparent-favorites"

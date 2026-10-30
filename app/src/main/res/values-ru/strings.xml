@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Лаунчер KISS</string>
+    <string name="app_name">KissLC launcher</string>
     <string name="activity_setting">Параметры KISS</string>
     <string name="ui_search_hint">Поиск приложений, контактов, …</string>
     <string name="ui_item_search">Поиск %1$s для “%2$s”</string>
