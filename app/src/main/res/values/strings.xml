@@ -246,9 +246,8 @@
     <string name="cant_pin_shortcut">Could not add shortcut. Is KISS your default launcher\?</string>
     <string name="copy_confirmation">Copied to clipboard</string>
     <string name="large_favorites_bar">Use bigger favorites</string>
-    <string name="favorite_max_icons">Maximum favorite icons</string>
-    <string name="favorite_max_icons_summary">Limit how many favorites are shown. 0 means no limit.</string>
-    <string name="favorite_rows">Favorite rows</string>
+    <string name="favorite_max_icons">Icons per row</string>
+    <string name="favorite_max_icons_summary">How many favorite icons per row. Larger number = smaller icons. 0 fits all in one row.</string>
     <string name="menu_size_down">Reduce</string>
     <string name="menu_size_up">Enlarge</string>
     <string name="menu_widget_move_up">Move up</string>

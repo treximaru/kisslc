@@ -252,17 +252,18 @@ public class Favorites extends Forwarder {
 
     public void onFavoriteChange() {
         List<Pojo> favoritesPojo = KissApplication.getApplication(mainActivity).getDataHandler().getFavorites();
-
-        int maxIcons = getFavoriteMaxIcons();
-        if (maxIcons > 0 && favoritesPojo.size() > maxIcons) {
-            favoritesPojo = favoritesPojo.subList(0, maxIcons);
-        }
         int favSize = favoritesPojo.size();
 
-        // The embedded bar lives inside the kiss bar with a fixed height: keep a single row.
-        // The external bar can spread favorites over several rows.
-        int rows = isExternalFavoriteBarEnabled() ? getFavoriteRows() : 1;
-        int spanCount = Math.max((favSize + rows - 1) / rows, 1);
+        int spanCount;
+        if (isExternalFavoriteBarEnabled()) {
+            // Icons per row: 0 (default) fits everything in a single row (upstream behavior).
+            // The grid wraps to as many rows as needed; icon size follows from the column count.
+            int perRow = getFavoriteIconsPerRow();
+            spanCount = perRow > 0 ? Math.min(perRow, Math.max(favSize, 1)) : Math.max(favSize, 1);
+        } else {
+            // The embedded bar lives inside the kiss bar with a fixed height: keep a single row.
+            spanCount = Math.max(favSize, 1);
+        }
 
         RecyclerView favoritesBar = mainActivity.favoritesBar;
         if (favoritesBar.getLayoutManager() instanceof GridLayoutManager) {
@@ -272,24 +273,14 @@ public class Favorites extends Forwarder {
     }
 
     /**
-     * Maximum number of favorite icons shown in the bar. 0 (default) means no limit.
+     * Icons per row in the external favorites bar. 0 (default) fits all in one row.
+     * Stored under the historic "favorite-max-icons" key so existing values carry over.
      */
-    private int getFavoriteMaxIcons() {
+    private int getFavoriteIconsPerRow() {
         try {
             return Math.max(Integer.parseInt(prefs.getString("favorite-max-icons", "0")), 0);
         } catch (NumberFormatException e) {
             return 0;
-        }
-    }
-
-    /**
-     * Number of rows the external favorites bar spreads icons over. Always at least 1.
-     */
-    private int getFavoriteRows() {
-        try {
-            return Math.max(Integer.parseInt(prefs.getString("favorite-rows", "1")), 1);
-        } catch (NumberFormatException e) {
-            return 1;
         }
     }
 
