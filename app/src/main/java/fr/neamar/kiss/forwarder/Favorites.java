@@ -252,13 +252,45 @@ public class Favorites extends Forwarder {
 
     public void onFavoriteChange() {
         List<Pojo> favoritesPojo = KissApplication.getApplication(mainActivity).getDataHandler().getFavorites();
+
+        int maxIcons = getFavoriteMaxIcons();
+        if (maxIcons > 0 && favoritesPojo.size() > maxIcons) {
+            favoritesPojo = favoritesPojo.subList(0, maxIcons);
+        }
         int favSize = favoritesPojo.size();
+
+        // The embedded bar lives inside the kiss bar with a fixed height: keep a single row.
+        // The external bar can spread favorites over several rows.
+        int rows = isExternalFavoriteBarEnabled() ? getFavoriteRows() : 1;
+        int spanCount = Math.max((favSize + rows - 1) / rows, 1);
 
         RecyclerView favoritesBar = mainActivity.favoritesBar;
         if (favoritesBar.getLayoutManager() instanceof GridLayoutManager) {
-            ((GridLayoutManager) favoritesBar.getLayoutManager()).setSpanCount(Math.max(favSize, 1));
+            ((GridLayoutManager) favoritesBar.getLayoutManager()).setSpanCount(spanCount);
         }
         favoriteAdapter.setFavorites(favoritesPojo.stream().map(pojo -> Result.fromPojo(mainActivity, pojo)).collect(Collectors.toList()));
+    }
+
+    /**
+     * Maximum number of favorite icons shown in the bar. 0 (default) means no limit.
+     */
+    private int getFavoriteMaxIcons() {
+        try {
+            return Math.max(Integer.parseInt(prefs.getString("favorite-max-icons", "0")), 0);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Number of rows the external favorites bar spreads icons over. Always at least 1.
+     */
+    private int getFavoriteRows() {
+        try {
+            return Math.max(Integer.parseInt(prefs.getString("favorite-rows", "1")), 1);
+        } catch (NumberFormatException e) {
+            return 1;
+        }
     }
 
     private void onClick(View v, Result<?> result) {

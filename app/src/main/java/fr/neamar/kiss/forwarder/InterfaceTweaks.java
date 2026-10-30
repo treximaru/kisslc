@@ -203,9 +203,24 @@ public class InterfaceTweaks extends Forwarder {
         mainActivity.kissBar.getLayoutParams().height = searchHeight;
         mainActivity.findViewById(R.id.embeddedFavoritesBar).getLayoutParams().height = searchHeight;
 
-        // Large favorite bar
-        if (prefs.getBoolean("large-favorites-bar", false) && isExternalFavoriteBarEnabled()) {
-            mainActivity.favoritesBar.getLayoutParams().height = res.getDimensionPixelSize(R.dimen.large_favorite_height);
+        // Favorites bar height: one row of favorite_height (or large_favorite_height
+        // when "large-favorites-bar" is on), scaled by the configured number of rows
+        if (isExternalFavoriteBarEnabled()) {
+            int singleRowHeight = prefs.getBoolean("large-favorites-bar", false)
+                    ? res.getDimensionPixelSize(R.dimen.large_favorite_height)
+                    : res.getDimensionPixelSize(R.dimen.favorite_height);
+            mainActivity.favoritesBar.getLayoutParams().height = singleRowHeight * getFavoriteRows();
+        }
+    }
+
+    /**
+     * Number of rows the external favorites bar spreads icons over. Always at least 1.
+     */
+    private int getFavoriteRows() {
+        try {
+            return Math.max(Integer.parseInt(prefs.getString("favorite-rows", "1")), 1);
+        } catch (NumberFormatException e) {
+            return 1;
         }
     }
 
